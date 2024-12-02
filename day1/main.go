@@ -47,10 +47,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("left", leftPath)
-	fmt.Println("right", rightPath)
+	// fmt.Println("left", leftPath)
+	// fmt.Println("right", rightPath)
 
-	fmt.Println("*** result is *****", part1(leftPath, rightPath))
+	part2leftpath := make([]int, len(leftPath))
+	part2rightpath := make([]int, len(rightPath))
+	copy(part2leftpath, leftPath)
+	copy(part2rightpath, rightPath)
+
+	fmt.Println("*** result part1 is *****", part1(leftPath, rightPath))
+	fmt.Println("*** result part2 is *****", part2(part2leftpath, part2rightpath))
 }
 
 func part1(leftPath, righPath []int) int {
@@ -64,6 +70,15 @@ func part1(leftPath, righPath []int) int {
 	return res
 }
 
-// func part2(leftPath, rightPath []int) int {
+func part2(leftPath, rightPath []int) int {
+	countMap := make(map[int]int, len(leftPath))
+	for i, _ := range leftPath {
+		utils.UpdateDict(countMap, rightPath[i])
+	}
 
-// }
+	result := 0
+	for _, v := range leftPath {
+		result += (v * utils.FindInDict(countMap, v))
+	}
+	return result
+}
