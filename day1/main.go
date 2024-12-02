@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/achal1304/Advent-Of-Code/helper"
+	"github.com/achal1304/Advent-Of-Code/utils"
 )
 
 // Historian Hysteria
@@ -49,15 +49,21 @@ func main() {
 
 	fmt.Println("left", leftPath)
 	fmt.Println("right", rightPath)
+
+	fmt.Println("*** result is *****", part1(leftPath, rightPath))
 }
 
-func calculateDistance(leftPath, righPath []int) int {
+func part1(leftPath, righPath []int) int {
 	sort.Ints(leftPath)
 	sort.Ints(righPath)
 	res := 0
 
 	for i, _ := range leftPath {
-		res += helper.AbsInt(leftPath[i] - righPath[i])
+		res += utils.AbsInt(leftPath[i] - righPath[i])
 	}
 	return res
 }
+
+// func part2(leftPath, rightPath []int) int {
+
+// }
