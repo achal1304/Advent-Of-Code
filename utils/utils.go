@@ -1,5 +1,7 @@
 package utils
 
+import "fmt"
+
 func AbsInt(x int) int {
 	if x > 0 {
 		return x
@@ -18,4 +20,20 @@ func UpdateDict[T comparable](countPath map[T]int, path T) {
 
 func FindInDict[T comparable](countPath map[T]int, path T) int {
 	return countPath[path]
+}
+
+func RemoveSliceElement(slice []int, index int) []int {
+	if index < 0 || index >= len(slice) {
+		fmt.Println("Index out of range")
+		return slice
+	}
+
+	return append(slice[:index], slice[index+1:]...)
+}
+
+func MaxNumber(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
