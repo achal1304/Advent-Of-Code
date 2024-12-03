@@ -28,82 +28,63 @@ func main() {
 
 func findMulInstructions(operations string) int {
 	result := 0
-outerLoops:
 	for i := 0; i < len(operations); i++ {
-		// if i > 500 {
-		// 	break
-		// }
-		// fmt.Println(i, " ", string(operations[i]))
 		firstNum := 0
 		secondNum := 0
 		if string(operations[i]) == "m" {
 			if i < len(operations)-7 {
 				if string(operations[i+1]) == "u" && string(operations[i+2]) == "l" && string(operations[i+3]) == "(" {
-					// fmt.Println("inside mul(")
 					i = i + 3
-				innerLoop1:
-					for j := i + 1; j < i+6; j++ {
-						// iteration := j - i - 1
-						if string(operations[j]) == " " {
-							// fmt.Println("empty spce skipping")
-							i = i + 1
-							continue outerLoops
-						}
-						if string(operations[j]) == "," {
-							num, err := strconv.Atoi(string(operations[i+1 : j]))
-							// fmt.Println("number check ", string(operations[i+1:j]))
-							if err != nil {
-								// fmt.Println("not a number ", string(operations[i+1:j]))
-								i = i + 1
-								continue outerLoops
-							} else {
-								// fmt.Println("firstnum ", num)
-								firstNum = num
-								i = j
-								break innerLoop1
-							}
-						}
-						if j == i+5 {
-							i = i + 1
-							continue outerLoops
-						}
-					}
+					i, firstNum = detectNumberInMul(operations, i, ",")
+					i, secondNum = detectNumberInMul(operations, i, ")")
 
-				innerLoop2:
-					for j := i + 1; j < i+6; j++ {
-						// fmt.Println("seconf num iteration start from i and val", j, string(operations[j]))
-						// iteration := j - i - 1
-						if string(operations[j]) == " " {
-							i = i + 1
-							continue outerLoops
-						}
-						if string(operations[j]) == ")" {
-							num, err := strconv.Atoi(string(operations[i+1 : j]))
-							if err != nil {
-								// fmt.Println("not a number ", string(operations[i+1:j]))
-								i = i + 1
-								continue outerLoops
-							} else {
-								// fmt.Println("secondNum ", num)
-								secondNum = num
-								i = j
-								break innerLoop2
-							}
-						}
-						if j == i+4 {
-							i = i + 1
-							continue outerLoops
-						}
-					}
 					if firstNum != 0 && secondNum != 0 {
-						// fmt.Println("new index iteration", i, " ", string(operations[i]))
 						fmt.Println("index - ", i, " next ele - ", string(operations[i]), " first num -", firstNum, " second num -", secondNum)
 						result += firstNum * secondNum
+						fmt.Println("result  ", result)
 					}
 				}
 			}
-
 		}
 	}
 	return result
+}
+
+func disableMulCheck(operations string, currentIndex int) int {
+	if len(operations)-5 > currentIndex {
+		if string(operations[currentIndex:currentIndex+5]) == "don't" {
+			fmt.Println("dont detected ")
+			for i := currentIndex + 5; i < len(operations)-5; i++ {
+				if string(operations[i:i+5]) != "don't" && string(operations[i:i+2]) == "do" {
+					fmt.Println("do detected near ", string(operations[i-1:i+3]))
+					return i + 3
+				}
+			}
+			return len(operations) - 5
+		}
+	}
+	return currentIndex
+}
+
+func detectNumberInMul(operations string, currentIndex int, searchCharacter string) (int, int) {
+	outputNum := 0
+	for j := currentIndex + 1; j < currentIndex+6; j++ {
+		if string(operations[j]) == " " {
+			return currentIndex + 1, 0
+		}
+		if string(operations[j]) == searchCharacter {
+			num, err := strconv.Atoi(string(operations[currentIndex+1 : j]))
+			if err != nil {
+				return currentIndex + 1, 0
+			} else {
+				outputNum = num
+				currentIndex = j
+				return currentIndex, outputNum
+			}
+		}
+		if j == currentIndex+4 {
+			return currentIndex + 1, 0
+		}
+	}
+	return currentIndex + 1, 0
 }
