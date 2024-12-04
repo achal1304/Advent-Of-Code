@@ -41,8 +41,8 @@ func main() {
 	fmt.Println(wordarray)
 	fmt.Println("x  length ", len(wordarray[0]))
 	fmt.Println("y  length ", len(wordarray))
-	// fmt.Println(searchXMASWord(wordarray, len(wordarray)))
-	fmt.Println(searchMASWordinX(wordarray, len(wordarray)))
+	fmt.Println(searchXMASWord(wordarray, len(wordarray)))
+	// fmt.Println(searchMASWordinX(wordarray, len(wordarray)))
 
 }
 
@@ -101,7 +101,7 @@ func searchMASWordinX(wordArray []string, size int) int {
 	}
 	wg.Wait()
 
-	fmt.Println("finaldict", dictMAS)
+	// fmt.Println("finaldict", dictMAS)
 	for _, v := range dictMAS {
 		if v == 2 {
 			totCount += 1
@@ -112,35 +112,94 @@ func searchMASWordinX(wordArray []string, size int) int {
 
 func searchXMASWord(wordArray []string, size int) int {
 	totCount := 0
+	var wg sync.WaitGroup
+
 	for row := 0; row < size; row++ {
 		for col := 0; col < size; col++ {
+			ch := make(chan int, 8)
 			if string(wordArray[row][col]) == string(searchWord[0]) {
 				fmt.Println("************ X FOUNDDDD **************", col, row)
-				totCount += searchXMAS(wordArray, 1, row, col-1, 1, Left, searchWord)
-				fmt.Println("totalcount from left ", totCount)
-				totCount += searchXMAS(wordArray, 1, row, col+1, 1, Right, searchWord)
-				fmt.Println("totalcount from right ", totCount)
-				totCount += searchXMAS(wordArray, 1, row-1, col, 1, Top, searchWord)
-				fmt.Println("totalcount from top ", totCount)
-				totCount += searchXMAS(wordArray, 1, row+1, col, 1, Bottom, searchWord)
-				fmt.Println("totalcount from vottom ", totCount)
-				totCount += searchXMAS(wordArray, 1, row-1, col-1, 1, LeftTop, searchWord)
-				fmt.Println("totalcount from left top ", totCount)
-				totCount += searchXMAS(wordArray, 1, row+1, col-1, 1, LeftBottm, searchWord)
-				fmt.Println("totalcount from left bottom ", totCount)
-				totCount += searchXMAS(wordArray, 1, row-1, col+1, 1, RightTop, searchWord)
-				fmt.Println("totalcount from righttop ", totCount)
-				totCount += searchXMAS(wordArray, 1, row+1, col+1, 1, RightBottom, searchWord)
-				fmt.Println("totalcount from rightbottom ", totCount)
+
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					count := searchXMAS(wordArray, 1, row, col-1, 1, Left, searchWord)
+					fmt.Println("totalcount from left ", count)
+					ch <- count
+				}()
+
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					count := searchXMAS(wordArray, 1, row, col+1, 1, Right, searchWord)
+					fmt.Println("totalcount from right ", count)
+					ch <- count
+				}()
+
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					count := searchXMAS(wordArray, 1, row-1, col, 1, Top, searchWord)
+					fmt.Println("totalcount from top ", count)
+					ch <- count
+				}()
+
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					count := searchXMAS(wordArray, 1, row+1, col, 1, Bottom, searchWord)
+					fmt.Println("totalcount from vottom ", count)
+					ch <- count
+				}()
+
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					count := searchXMAS(wordArray, 1, row-1, col-1, 1, LeftTop, searchWord)
+					fmt.Println("totalcount from left top ", count)
+					ch <- count
+				}()
+
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					count := searchXMAS(wordArray, 1, row+1, col-1, 1, LeftBottm, searchWord)
+					fmt.Println("totalcount from left bottom ", count)
+					ch <- count
+				}()
+
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					count := searchXMAS(wordArray, 1, row-1, col+1, 1, RightTop, searchWord)
+					fmt.Println("totalcount from righttop ", count)
+					ch <- count
+				}()
+
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					count := searchXMAS(wordArray, 1, row+1, col+1, 1, RightBottom, searchWord)
+					fmt.Println("totalcount from rightbottom ", count)
+					ch <- count
+				}()
+
+				wg.Wait()
+				close(ch)
+
+				for count := range ch {
+					totCount += count
+				}
 			}
 		}
 	}
+
 	return totCount
 }
 
 func searchXMAS(wordArray []string, searchIndex int, row int, col int, currCount int, direction int, searchTarget string) int {
 	totCount := 0
-	if col < 0 || row < 0 || col+1 > len(wordArray) || row+1 > len(wordArray) {
+	if col < 0 || row < 0 || col+1 > len(wordArray[0]) || row+1 > len(wordArray) {
 		return totCount
 	}
 	if string(wordArray[row][col]) == string(searchTarget[searchIndex]) {
@@ -151,81 +210,102 @@ func searchXMAS(wordArray []string, searchIndex int, row int, col int, currCount
 		if currCount == len(searchTarget) {
 			return 1
 		}
+
+		var wg sync.WaitGroup
+		ch := make(chan int, 8)
+
 		// Left
 		if col-1 >= 0 && direction == Left {
-			count := searchXMAS(wordArray, searchIndex, row, col-1, currCount, Left, searchTarget)
-			fmt.Println("Left returned totalcount is ", count, " ", col, " ", row)
-			totCount += count
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				count := searchXMAS(wordArray, searchIndex, row, col-1, currCount, Left, searchTarget)
+				fmt.Println("Left returned totalcount is ", count, " ", col, " ", row)
+				ch <- count
+			}()
 		}
 
 		// Right
 		if col+1 < len(wordArray[0]) && direction == Right {
-			count := searchXMAS(wordArray, searchIndex, row, col+1, currCount, Right, searchTarget)
-			fmt.Println("Right returned totalcount is ", count, " ", col, " ", row)
-			// if count == 4 {
-			// 	totCount += 1
-			// }
-			totCount += count
-
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				count := searchXMAS(wordArray, searchIndex, row, col+1, currCount, Right, searchTarget)
+				fmt.Println("Right returned totalcount is ", count, " ", col, " ", row)
+				ch <- count
+			}()
 		}
 
 		// Top:
 		if row-1 >= 0 && direction == Top {
-			count := searchXMAS(wordArray, searchIndex, row-1, col, currCount, Top, searchTarget)
-			fmt.Println("Top returned totalcount is ", count, " ", col, " ", row)
-			// if count == 4 {
-			// 	totCount += 1
-			// }
-			totCount += count
-
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				count := searchXMAS(wordArray, searchIndex, row-1, col, currCount, Top, searchTarget)
+				fmt.Println("Top returned totalcount is ", count, " ", col, " ", row)
+				ch <- count
+			}()
 		}
 
 		// Bottom:
 		if row+1 < len(wordArray) && direction == Bottom {
-			count := searchXMAS(wordArray, searchIndex, row+1, col, currCount, Bottom, searchTarget)
-			fmt.Println("Bottom returned totalcount is ", count, " ", col, " ", row)
-			// if count == 4 {
-			// 	totCount += 1
-			// }
-			totCount += count
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				count := searchXMAS(wordArray, searchIndex, row+1, col, currCount, Bottom, searchTarget)
+				fmt.Println("Bottom returned totalcount is ", count, " ", col, " ", row)
+				ch <- count
+			}()
 		}
 
 		// Top-left diagonal:
 		if row-1 >= 0 && col-1 >= 0 && direction == LeftTop {
-			count := searchXMAS(wordArray, searchIndex, row-1, col-1, currCount, LeftTop, searchTarget)
-			fmt.Println("LeftTop returned totalcount is ", count, " ", col, " ", row)
-			// if count == 4 {
-			// 	totCount += 1
-			// }
-			totCount += count
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				count := searchXMAS(wordArray, searchIndex, row-1, col-1, currCount, LeftTop, searchTarget)
+				fmt.Println("LeftTop returned totalcount is ", count, " ", col, " ", row)
+				ch <- count
+			}()
 		}
 
 		// Top-right diagonal
 		if row-1 >= 0 && col+1 < len(wordArray[0]) && direction == RightTop {
-			count := searchXMAS(wordArray, searchIndex, row-1, col+1, currCount, RightTop, searchTarget)
-			fmt.Println("RightTop returned totalcount is ", count, " ", col, " ", row)
-			// if count == 4 {
-			// 	totCount += 1
-			// }
-			totCount += count
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				count := searchXMAS(wordArray, searchIndex, row-1, col+1, currCount, RightTop, searchTarget)
+				fmt.Println("RightTop returned totalcount is ", count, " ", col, " ", row)
+				ch <- count
+			}()
 		}
 
 		// Bottom-left diagonal
 		if row+1 < len(wordArray) && col-1 >= 0 && direction == LeftBottm {
-			count := searchXMAS(wordArray, searchIndex, row+1, col-1, currCount, LeftBottm, searchTarget)
-			fmt.Println(" LeftBottm returned totalcount is ", count, " ", col, " ", row)
-			// if count == 4 {
-			// 	totCount += 1
-			// }
-			totCount += count
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				count := searchXMAS(wordArray, searchIndex, row+1, col-1, currCount, LeftBottm, searchTarget)
+				fmt.Println(" LeftBottm returned totalcount is ", count, " ", col, " ", row)
+				ch <- count
+			}()
 		}
+
 		// Bottom right diagonal
 		if row+1 < len(wordArray) && col+1 < len(wordArray[0]) && direction == RightBottom {
-			count := searchXMAS(wordArray, searchIndex, row+1, col+1, currCount, RightBottom, searchTarget)
-			fmt.Println("RightBottom returned totalcount is ", count, " ", col, " ", row)
-			// if count == 4 {
-			// 	totCount += 1
-			// }
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				count := searchXMAS(wordArray, searchIndex, row+1, col+1, currCount, RightBottom, searchTarget)
+				fmt.Println("RightBottom returned totalcount is ", count, " ", col, " ", row)
+				ch <- count
+			}()
+		}
+
+		wg.Wait()
+		close(ch)
+
+		for count := range ch {
 			totCount += count
 		}
 	}
