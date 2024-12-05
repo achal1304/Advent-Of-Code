@@ -1,6 +1,8 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func AbsInt(x int) int {
 	if x > 0 {
@@ -30,10 +32,26 @@ func RemoveSliceElement(slice []int, index int) []int {
 
 	return append(slice[:index], slice[index+1:]...)
 }
+func RemoveSliceElementByValue(slice []int, value int) []int {
+	for i := 0; i < len(slice); i++ {
+		if slice[i] == value {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
+}
 
 func MaxNumber(a, b int) int {
 	if a > b {
 		return a
 	}
 	return b
+}
+
+func UpdateListDict(dict map[int][]int, key int, value int) {
+	if _, ok := dict[key]; !ok {
+		dict[key] = []int{value}
+	} else {
+		dict[key] = append(dict[key], value)
+	}
 }
