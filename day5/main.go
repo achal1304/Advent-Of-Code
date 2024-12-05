@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -41,7 +42,7 @@ func main() {
 			predecessorCount[num1] = 0
 		}
 
-		utils.UpdateListDict(dict, num1, num2)
+		utils.UpdateListDict(dict, num2, num1)
 	}
 
 	var printers [][]int
@@ -62,66 +63,70 @@ func main() {
 		printers = append(printers, printer)
 	}
 
-	// fmt.Println(dict)
-	// fmt.Println(printers)
-
-	// Copy the inDegree map to avoid modifying the original map
-
-	fmt.Println(dict)
-	for k, v := range dict {
-		fmt.Println("key ", k, " val ", v)
+	for k, _ := range dict {
+		sort.Ints(dict[k])
 	}
-	fmt.Println(validatePages(printers, dict, predecessorCount))
+	correctCount, incorrectPages := validatePages(printers, dict, predecessorCount)
+	fmt.Println("correctcount", correctCount)
+	fmt.Println("incorrectPages", incorrectPages)
+	totalIncorrect := processIncorrectPages(incorrectPages, dict)
+	fmt.Println("totalinccorect", totalIncorrect)
+
 }
 
-func validateEachPage(printerPage []int, graph map[int][]int, predecessorMap map[int]int) int {
-	// count := 0
-	queue := []int{}
-	for page, predecessorCount := range predecessorMap {
-		if predecessorCount == 0 {
-			queue = append(queue, page)
+func validatePages(printerPages [][]int, graph map[int][]int, predecessorMap map[int]int) (int, [][]int) {
+	indexTotalCount := 0
+	incorrectList := [][]int{}
+	for _, printerPage := range printerPages {
+		receivedCount := validateEachPage(printerPage, graph)
+		if receivedCount == 0 {
+			indexTotalCount += receivedCount
+			incorrectList = append(incorrectList, printerPage)
 		}
 	}
+	return indexTotalCount, incorrectList
+}
 
-	processedPages := 0
-
-	// fmt.Println("searching in ", printerPage)
-	for len(queue) > 0 && processedPages < len(printerPage) {
-		fmt.Println("queue ", queue)
-		// fmt.Println("currrent index", processedPages)
-		checkPage := queue[0]
-		queue = queue[1:]
-
-		if printerPage[processedPages] == checkPage {
-			processedPages += 1
-		}
-
-		for _, successor := range graph[checkPage] {
-			predecessorMap[successor]--
-			if predecessorMap[successor] == 0 {
-				queue = append(queue, successor)
+func validateEachPage(printerPage []int, graph map[int][]int) int {
+	isEveryIterationValid := true
+	for i := 0; i < len(printerPage)-1; i++ {
+		searchedElements := graph[printerPage[i]]
+		for j := i + 1; j < len(printerPage); j++ {
+			isPresentInList := utils.BinarySearch(searchedElements, printerPage[j])
+			if isPresentInList > -1 {
+				isEveryIterationValid = false
+				break
 			}
 		}
 	}
-	// fmt.Println("processedpages and len", processedPages, " ", len(printerPage))
-	if processedPages == len(printerPage) {
+	if isEveryIterationValid {
 		return printerPage[len(printerPage)/2]
 	}
 	return 0
 }
 
-func validatePages(printerPages [][]int, graph map[int][]int, predecessorMap map[int]int) int {
+func processIncorrectPages(printerPages [][]int, graph map[int][]int) int {
 	indexTotalCount := 0
 	for _, printerPage := range printerPages {
-		predecessorMapCopy := make(map[int]int)
-		for k, v := range predecessorMap {
-			predecessorMapCopy[k] = v
-		}
-		printerPagesCopy := make(map[int][]int)
-		for k, v := range graph {
-			printerPagesCopy[k] = v
-		}
-		indexTotalCount += validateEachPage(printerPage, printerPagesCopy, predecessorMapCopy)
+		indexTotalCount += fixAndValidateIncorrectPage(printerPage, graph)
 	}
 	return indexTotalCount
+}
+
+func fixAndValidateIncorrectPage(printerPage []int, graph map[int][]int) int {
+	for i := 0; i < len(printerPage)-1; i++ {
+		for j := i + 1; j < len(printerPage); j++ {
+			searchedElements := graph[printerPage[i]]
+			presentIndex := utils.BinarySearch(searchedElements, printerPage[j])
+			if presentIndex > -1 {
+				currentIndexList := []int{printerPage[j]}
+				printerPage = append(printerPage[:j], printerPage[j+1:]...)
+				printerPage = append(printerPage[:i], append(currentIndexList, printerPage[i:]...)...)
+				printerPage = append(printerPage)
+			}
+		}
+	}
+
+	fmt.Println("** final updated list is **", printerPage)
+	return printerPage[len(printerPage)/2]
 }
