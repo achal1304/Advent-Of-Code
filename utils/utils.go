@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 func AbsInt(x int) int {
@@ -106,4 +108,23 @@ func SwapElements(slice []int, i, j int) []int {
 	slice = append(slice[:i+1], append([]int{elementI}, slice[i+1:]...)...)
 
 	return slice
+}
+
+func CopyDict(src map[string]string, dst map[string]string) {
+	for k, v := range src {
+		dst[k] = v
+	}
+}
+
+func GetXAndYFromString(text string) (int, int) {
+	values := strings.Split(text, "-")
+	val1, err := strconv.Atoi(values[0])
+	if err != nil {
+		fmt.Println("cannot split text", text)
+	}
+	val2, err := strconv.Atoi(values[1])
+	if err != nil {
+		fmt.Println("cannot split text", text)
+	}
+	return val1, val2
 }
