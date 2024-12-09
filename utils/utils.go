@@ -110,6 +110,14 @@ func SwapElements(slice []int, i, j int) []int {
 	return slice
 }
 
+func ShiftElementOfArray(arr []int, value int, newPosition int, oldPosition int) []int {
+	arr = append(arr[:oldPosition], arr[oldPosition+1:]...)
+
+	// Insert the element at the new position
+	arr = append(arr[:newPosition], append([]int{value}, arr[newPosition:]...)...)
+	return arr
+}
+
 func CopyDict(src map[string]string, dst map[string]string) {
 	for k, v := range src {
 		dst[k] = v
