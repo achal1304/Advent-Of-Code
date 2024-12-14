@@ -7,6 +7,8 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+
+	"github.com/achal1304/Advent-Of-Code/utils"
 )
 
 type Point struct {
@@ -54,25 +56,35 @@ func calculatePositionsAfter100Seconds(mapBathroom map[Point]Velocity, width, he
 		newPointX := point.x + velocity.vx*MaxSeconds
 		newPointY := point.y + velocity.vy*MaxSeconds
 
-		for newPointX < 0 || newPointX > width-1 {
-			if newPointX > width-1 {
-				newPointX -= width
-			} else if newPointX < 0 {
-				newPointX += width
+		if newPointX < 0 || newPointX > width-1 {
+			posX := utils.AbsInt(newPointX)
+			div := posX / (width)
+			if newPointX < 0 {
+				newPointX += (div * (width))
+				if newPointX < 0 {
+					newPointX += width
+				}
+			} else {
+				newPointX -= (div * (width))
 			}
 		}
 
-		for newPointY < 0 || newPointY > height-1 {
-			if newPointY > height-1 {
-				newPointY -= height
-			} else if newPointY < 0 {
-				newPointY += height
+		if newPointY < 0 || newPointY > height-1 {
+			posY := utils.AbsInt(newPointY)
+			div := posY / (height)
+			if newPointY < 0 {
+				newPointY += (div * (height))
+				if newPointY < 0 {
+					newPointY += height
+				}
+			} else {
+				newPointY -= (div * (height))
 			}
 		}
 		quadrant := decideQuadrant(newPointX, newPointY, width, height)
 		quadrants[quadrant] += 1
-
 	}
+	// fmt.Println(quadrants)
 	return quadrants[0] * quadrants[1] * quadrants[2] * quadrants[3]
 }
 
