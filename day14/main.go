@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/achal1304/Advent-Of-Code/utils"
 )
@@ -25,8 +26,9 @@ func main() {
 	}
 	defer file.Close()
 	mapBathroom := scanInputWithRegex(file)
-	fmt.Println(mapBathroom)
-	fmt.Println(calculatePositionsAfter100Seconds(mapBathroom, 101, 103))
+	// fmt.Println(mapBathroom)
+	// fmt.Println(calculatePositionsAfter100Seconds(mapBathroom, 101, 103))
+	findTree(mapBathroom, 101, 103)
 }
 
 func scanInputWithRegex(file *os.File) map[Point]Velocity {
@@ -86,6 +88,64 @@ func calculatePositionsAfter100Seconds(mapBathroom map[Point]Velocity, width, he
 	}
 	// fmt.Println(quadrants)
 	return quadrants[0] * quadrants[1] * quadrants[2] * quadrants[3]
+}
+
+func findTree(mapBathroom map[Point]Velocity, width, height int) {
+	const MaxSeconds = 9000
+	const Start = 7085
+	iteration := Start
+	for i := Start; i <= MaxSeconds; i++ {
+		treeArray := make([][]string, width)
+		for i := range treeArray {
+			treeArray[i] = make([]string, height)
+			for j := range treeArray[i] {
+				treeArray[i][j] = " "
+			}
+		}
+		// fmt.Println(treeArray)
+		for point, velocity := range mapBathroom {
+			newPointX := point.x + velocity.vx*i
+			newPointY := point.y + velocity.vy*i
+
+			if newPointX < 0 || newPointX > width-1 {
+				posX := utils.AbsInt(newPointX)
+				div := posX / (width)
+				if newPointX < 0 {
+					newPointX += (div * (width))
+					if newPointX < 0 {
+						newPointX += width
+					}
+				} else {
+					newPointX -= (div * (width))
+				}
+			}
+
+			if newPointY < 0 || newPointY > height-1 {
+				posY := utils.AbsInt(newPointY)
+				div := posY / (height)
+				if newPointY < 0 {
+					newPointY += (div * (height))
+					if newPointY < 0 {
+						newPointY += height
+					}
+				} else {
+					newPointY -= (div * (height))
+				}
+			}
+
+			treeArray[newPointX][newPointY] = "#"
+		}
+
+		fmt.Println("iteration count ", iteration)
+		for _, ele := range treeArray {
+			for _, ele2 := range ele {
+				fmt.Print(ele2)
+			}
+			fmt.Println()
+		}
+		iteration++
+		time.Sleep(3000)
+	}
 }
 
 func decideQuadrant(x, y, width, height int) int {
