@@ -22,6 +22,13 @@ func UpdateDict[T comparable](countPath map[T]int, path T) {
 	countPath[path] = 1
 }
 
+// Helper function to find the maximum of two integers
+func Max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
 func FindInDict[T comparable](countPath map[T]int, path T) int {
 	return countPath[path]
 }
