@@ -29,6 +29,13 @@ func Max(a, b int) int {
 	}
 	return b
 }
+
+func Min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
 func FindInDict[T comparable](countPath map[T]int, path T) int {
 	return countPath[path]
 }
