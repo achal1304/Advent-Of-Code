@@ -10,7 +10,7 @@ type Point struct {
 	x, y int
 }
 
-const MaxDepth = 25
+const MaxDepth = 24
 
 var ReversePress = map[Point]string{
 	{-1, 0}: "^",
@@ -60,28 +60,26 @@ func (m *Memo) Set(key string, value int) {
 }
 
 func computeLength(x, y string, startInd, depth int, memo *Memo) int {
-	startKey := ""
-	if startInd == 0 {
-		startKey = "A"
-	} else {
+	startKey := "A"
+	if startInd != 0 {
 		startKey = x
 	}
+
 	if depth == 1 {
-		seqences := checkForNextRobot(KeyPad[startKey], []string{x + y}, 0, 0, KeyPad)[0]
-		return len(seqences) - 1
+		sequences := checkForNextRobot(KeyPad[startKey], []string{x + y}, 0, 0, KeyPad)[0]
+		return len(sequences) - 1
 	}
 
 	key := fmt.Sprintf("%s-%s-%s-%d", startKey, x, y, depth)
 	if val, found := memo.Get(key); found {
-		fmt.Println("********************* found in memo *************************", key, val)
+		// fmt.Println("********************* found in memo *************************", key, val)
 		return val
 	}
 
 	optimal := int(^uint(0) >> 1) // Max int value
-	seqences := []string{}
-	seqences = checkForNextRobot(KeyPad[startKey], []string{x + y}, 0, 0, KeyPad)
+	sequences := checkForNextRobot(KeyPad[startKey], []string{x + y}, 0, 0, KeyPad)
 
-	for _, seq := range seqences {
+	for _, seq := range sequences {
 		length := 0
 		for i := 0; i < len(seq)-1; i++ {
 			length += computeLength(string(seq[i]), string(seq[i+1]), i, depth-1, memo)
@@ -96,251 +94,104 @@ func computeLength(x, y string, startInd, depth int, memo *Memo) int {
 }
 
 func specialCase(dX, dY int) []string {
-	eleList := []string{}
+	path := []string{}
 	for dY > 0 {
-		eleList = append(eleList, ReversePress[Point{0, 1}])
-		dY -= 1
+		path = append(path, ReversePress[Point{0, 1}])
+		dY--
 	}
 	for dX > 0 {
-		eleList = append(eleList, ReversePress[Point{1, 0}])
-		dX -= 1
+		path = append(path, ReversePress[Point{1, 0}])
+		dX--
 	}
 	for dX < 0 {
-		eleList = append(eleList, ReversePress[Point{-1, 0}])
-		dX += 1
+		path = append(path, ReversePress[Point{-1, 0}])
+		dX++
 	}
 	for dY < 0 {
-		eleList = append(eleList, ReversePress[Point{0, -1}])
+		path = append(path, ReversePress[Point{0, -1}])
 		dY++
 	}
-	return eleList
-}
-
-func checkForNextRobot(startPos Point, inputTextStrings []string, checkX, checkY int, checkPress map[string]Point) []string {
-	start := startPos
-	finalEleList := [][]string{}
-	for _, inputText := range inputTextStrings {
-		eleList := [][]string{{}, {}, {}, {}}
-		for _, ele := range inputText {
-			dX, dY := indexDistance(start, checkPress[string(ele)])
-			specialList := specialCase(dX, dY)
-			eleList[0] = append(eleList[0], specialList...)
-			eleList[0] = append(eleList[0], "A")
-			start = checkPress[string(ele)]
-		}
-		start = startPos
-		for _, ele := range inputText {
-			passPoint := checkPress[string(ele)]
-			dX, dY := indexDistance(start, checkPress[string(ele)])
-			if (passPoint.x == checkX || passPoint.y == checkY) &&
-				(start.x == checkX || start.y == checkY) {
-				specialList := specialCase(dX, dY)
-				eleList[1] = append(eleList[1], specialList...)
-				eleList[1] = append(eleList[1], "A")
-			} else {
-				for dX > 0 {
-					eleList[1] = append(eleList[1], ReversePress[Point{1, 0}])
-					dX -= 1
-				}
-				for dY > 0 {
-					eleList[1] = append(eleList[1], ReversePress[Point{0, 1}])
-					dY -= 1
-				}
-				for dY < 0 {
-					eleList[1] = append(eleList[1], ReversePress[Point{0, -1}])
-					dY++
-				}
-				for dX < 0 {
-					eleList[1] = append(eleList[1], ReversePress[Point{-1, 0}])
-					dX += 1
-				}
-				eleList[1] = append(eleList[1], "A")
-			}
-			start = checkPress[string(ele)]
-		}
-		start = startPos
-		for _, ele := range inputText {
-			passPoint := checkPress[string(ele)]
-			dX, dY := indexDistance(start, checkPress[string(ele)])
-			if (passPoint.x == checkX || passPoint.y == checkY) &&
-				(start.x == checkX || start.y == checkY) {
-				specialList := specialCase(dX, dY)
-				eleList[2] = append(eleList[2], specialList...)
-				eleList[2] = append(eleList[2], "A")
-			} else {
-				for dX > 0 {
-					eleList[2] = append(eleList[2], ReversePress[Point{1, 0}])
-					dX -= 1
-				}
-				for dY > 0 {
-					eleList[2] = append(eleList[2], ReversePress[Point{0, 1}])
-					dY -= 1
-				}
-				for dX < 0 {
-					eleList[2] = append(eleList[2], ReversePress[Point{-1, 0}])
-					dX += 1
-				}
-				for dY < 0 {
-					eleList[2] = append(eleList[2], ReversePress[Point{0, -1}])
-					dY++
-				}
-				eleList[2] = append(eleList[2], "A")
-			}
-			start = checkPress[string(ele)]
-		}
-		start = startPos
-		for _, ele := range inputText {
-			passPoint := checkPress[string(ele)]
-			dX, dY := indexDistance(start, checkPress[string(ele)])
-			if (passPoint.x == checkX || passPoint.y == checkY) &&
-				(start.x == checkX || start.y == checkY) {
-				specialList := specialCase(dX, dY)
-				eleList[3] = append(eleList[3], specialList...)
-				eleList[3] = append(eleList[3], "A")
-			} else {
-				for dY < 0 {
-					eleList[3] = append(eleList[3], ReversePress[Point{0, -1}])
-					dY++
-				}
-				for dX < 0 {
-					eleList[3] = append(eleList[3], ReversePress[Point{-1, 0}])
-					dX += 1
-				}
-				for dY > 0 {
-					eleList[3] = append(eleList[3], ReversePress[Point{0, 1}])
-					dY -= 1
-				}
-				for dX > 0 {
-					eleList[3] = append(eleList[3], ReversePress[Point{1, 0}])
-					dX -= 1
-				}
-				eleList[3] = append(eleList[3], "A")
-			}
-			start = checkPress[string(ele)]
-		}
-		finalEleList = append(finalEleList, eleList...)
-	}
-
-	ansList1 := checkUniqueLists(finalEleList)
-
-	return ansList1
-}
-
-func checkForFirstRobot(inputTextStrings []string, checkX, checkY int, checkPress map[string]Point) [][]string {
-	start := checkPress["A"]
-	finalEleList := [][]string{}
-	for _, inputText := range inputTextStrings {
-		eleList := [][]string{{}, {}, {}, {}}
-		for _, ele := range inputText {
-			dX, dY := indexDistance(start, checkPress[string(ele)])
-			specialList := specialCase(dX, dY)
-			eleList[0] = append(eleList[0], specialList...)
-			eleList[0] = append(eleList[0], "A")
-			start = checkPress[string(ele)]
-		}
-		start = checkPress["A"]
-		for _, ele := range inputText {
-			passPoint := checkPress[string(ele)]
-			dX, dY := indexDistance(start, checkPress[string(ele)])
-			if (passPoint.x == checkX || passPoint.y == checkY) &&
-				(start.x == checkX || start.y == checkY) {
-				specialList := specialCase(dX, dY)
-				eleList[1] = append(eleList[1], specialList...)
-				eleList[1] = append(eleList[1], "A")
-			} else {
-				for dX > 0 {
-					eleList[1] = append(eleList[1], ReversePress[Point{1, 0}])
-					dX -= 1
-				}
-				for dY > 0 {
-					eleList[1] = append(eleList[1], ReversePress[Point{0, 1}])
-					dY -= 1
-				}
-				for dY < 0 {
-					eleList[1] = append(eleList[1], ReversePress[Point{0, -1}])
-					dY++
-				}
-				for dX < 0 {
-					eleList[1] = append(eleList[1], ReversePress[Point{-1, 0}])
-					dX += 1
-				}
-				eleList[1] = append(eleList[1], "A")
-			}
-			start = checkPress[string(ele)]
-		}
-		start = checkPress["A"]
-		for _, ele := range inputText {
-			passPoint := checkPress[string(ele)]
-			dX, dY := indexDistance(start, checkPress[string(ele)])
-			if (passPoint.x == checkX || passPoint.y == checkY) &&
-				(start.x == checkX || start.y == checkY) {
-				specialList := specialCase(dX, dY)
-				eleList[2] = append(eleList[2], specialList...)
-				eleList[2] = append(eleList[2], "A")
-			} else {
-				for dX > 0 {
-					eleList[2] = append(eleList[2], ReversePress[Point{1, 0}])
-					dX -= 1
-				}
-				for dY > 0 {
-					eleList[2] = append(eleList[2], ReversePress[Point{0, 1}])
-					dY -= 1
-				}
-				for dX < 0 {
-					eleList[2] = append(eleList[2], ReversePress[Point{-1, 0}])
-					dX += 1
-				}
-				for dY < 0 {
-					eleList[2] = append(eleList[2], ReversePress[Point{0, -1}])
-					dY++
-				}
-				eleList[2] = append(eleList[2], "A")
-			}
-			start = checkPress[string(ele)]
-		}
-		start = checkPress["A"]
-		for _, ele := range inputText {
-			passPoint := checkPress[string(ele)]
-			dX, dY := indexDistance(start, checkPress[string(ele)])
-			if (passPoint.x == checkX || passPoint.y == checkY) &&
-				(start.x == checkX || start.y == checkY) {
-				specialList := specialCase(dX, dY)
-				eleList[3] = append(eleList[3], specialList...)
-				eleList[3] = append(eleList[3], "A")
-			} else {
-				for dY < 0 {
-					eleList[3] = append(eleList[3], ReversePress[Point{0, -1}])
-					dY++
-				}
-				for dX < 0 {
-					eleList[3] = append(eleList[3], ReversePress[Point{-1, 0}])
-					dX += 1
-				}
-				for dY > 0 {
-					eleList[3] = append(eleList[3], ReversePress[Point{0, 1}])
-					dY -= 1
-				}
-				for dX > 0 {
-					eleList[3] = append(eleList[3], ReversePress[Point{1, 0}])
-					dX -= 1
-				}
-				eleList[3] = append(eleList[3], "A")
-			}
-			start = checkPress[string(ele)]
-		}
-		finalEleList = append(finalEleList, eleList...)
-	}
-	return finalEleList
+	return path
 }
 
 func indexDistance(p1, p2 Point) (int, int) {
 	return p2.x - p1.x, p2.y - p1.y
 }
 
+func checkForRobot(inputTextStrings []string, startPos Point, checkX, checkY int, checkPress map[string]Point, phases int) [][]string {
+	finalEleList := [][]string{}
+
+	for _, inputText := range inputTextStrings {
+		eleList := make([][]string, phases)
+
+		for phase := 0; phase < phases; phase++ {
+			start := startPos
+			for _, ele := range inputText {
+				passPoint := checkPress[string(ele)]
+				dX, dY := indexDistance(start, passPoint)
+
+				if (passPoint.x == checkX || passPoint.y == checkY) &&
+					(start.x == checkX || start.y == checkY) {
+					eleList[phase] = append(eleList[phase], specialCase(dX, dY)...) // Direct path
+				} else {
+					eleList[phase] = append(eleList[phase], generatePath(dX, dY, phase)...) // Alternate path
+				}
+
+				eleList[phase] = append(eleList[phase], "A")
+				start = passPoint
+			}
+		}
+		finalEleList = append(finalEleList, eleList...)
+	}
+
+	return finalEleList
+}
+
+func checkForNextRobot(startPos Point, inputTextStrings []string, checkX, checkY int, checkPress map[string]Point) []string {
+	paths := checkForRobot(inputTextStrings, startPos, checkX, checkY, checkPress, 4) // Reuse checkForRobot logic
+	stringPaths := []string{}
+	for _, ele := range paths {
+		stringPaths = append(stringPaths, strings.Join(ele, ""))
+	}
+	return stringPaths
+}
+
+func checkForFirstAndNextRobot(inputTextStrings []string, checkX, checkY int, checkPress map[string]Point) [][]string {
+	startPos := checkPress["A"]
+	return checkForRobot(inputTextStrings, startPos, checkX, checkY, checkPress, 4) // 4 phases
+}
+
+func generatePath(dX, dY, phase int) []string {
+	path := []string{}
+
+	order := [][]Point{
+		{{0, -1}, {-1, 0}, {0, 1}, {1, 0}}, // Phase 0
+		{{1, 0}, {0, 1}, {0, -1}, {-1, 0}}, // Phase 1
+		{{-1, 0}, {0, -1}, {1, 0}, {0, 1}}, // Phase 2
+		{{0, 1}, {1, 0}, {-1, 0}, {0, -1}}, // Phase 3
+	}
+
+	for _, dir := range order[phase] {
+		for (dX > 0 && dir == (Point{1, 0})) ||
+			(dX < 0 && dir == (Point{-1, 0})) ||
+			(dY > 0 && dir == (Point{0, 1})) ||
+			(dY < 0 && dir == (Point{0, -1})) {
+			path = append(path, ReversePress[dir])
+			if dir.x != 0 {
+				dX -= dir.x
+			} else {
+				dY -= dir.y
+			}
+		}
+	}
+
+	return path
+}
+
 func main() {
 	file, err := os.Open("../input.txt")
 	if err != nil {
-		fmt.Errorf("error occured ")
+		fmt.Errorf("error occurred")
 		os.Exit(1)
 	}
 	defer file.Close()
@@ -355,9 +206,8 @@ func main() {
 	}
 	ans := 0
 	for i, ele := range inputText {
-		ansList := checkForFirstRobot([]string{ele}, 3, 0, PasswordPress)
+		ansList := checkForFirstAndNextRobot([]string{ele}, 3, 0, PasswordPress)
 		ansList1 := checkUniqueLists(ansList)
-		// fmt.Println("ansList1  ", ansList1)
 
 		memo := NewMemo()
 		totLen := 9999999999999
@@ -366,13 +216,12 @@ func main() {
 			for k := 0; k < len(ansList1[j])-1; k++ {
 				optimal := computeLength(string(ansList1[j][k]), string(ansList1[j][k+1]), k, MaxDepth, memo)
 				minLen += optimal
-				// fmt.Printf("Optimal length for %s %s: %d\n", string(ansList1[j][k]), string(ansList1[j][k+1]), optimal)
 			}
 			if minLen < totLen {
 				totLen = minLen
 			}
 		}
-		fmt.Println("totLen length is", totLen+1)
+		fmt.Println("TotalLength for", ele, "After 24 iterations is", "length is", totLen+1)
 		ans += (totLen + 1) * inputNum[i]
 	}
 	fmt.Println(ans)
