@@ -107,6 +107,13 @@ func FindMaxInterconnected(connections map[string]map[string]bool, sortedKeys []
 	for _, key := range sortedKeys {
 		currentPair := []string{key}
 		neighbours := connections[key]
+
+		// as we are going from sortdkeys and for the next keys the length of map
+		// is similar to max no. of pairs it can have, we skip all next iterations as we are already at max pairs
+		if len(maxPair) >= len(neighbours) {
+			return maxPair
+		}
+
 	innterLoop:
 		for neighbour, _ := range neighbours {
 			mapOfNeighbor := connections[neighbour]
